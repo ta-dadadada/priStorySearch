@@ -1,31 +1,38 @@
+# -*- coding: utf-8 -*-
 import json
+import os
+from collections import OrderedDict
 from flask import (
     Flask,
     request,
+    jsonify,
+    render_template,
 )
 
 app = Flask(__name__)
+app.config['JSON_AS_ASCII'] = False
 
-FILE_LIST = {
-    'pp': 'プリパラ',
-    'kpch': 'キラっとプリチャン',
-    'idpp': 'アイドルタイムプリパラ',
-    'ad': 'プリティーリズムオーロラドリーム',
-    'rl': 'プリティーリズムレインボーライブ',
-    'ass': 'プリティーリズムオールスターセレクション',
-    'dmf': 'プリティーリズムディアマイフューチャー',
-}
+FILE_LIST = OrderedDict([
+    ('ad', 'プリティーリズムオーロラドリーム'),
+    ('dmf', 'プリティーリズムディアマイフューチャー'),
+    ('rl', 'プリティーリズムレインボーライブ'),
+    ('ass', 'プリティーリズムオールスターセレクション'),
+    ('pp', 'プリパラ'),
+    ('idpp', 'アイドルタイムプリパラ'),
+    ('kpch', 'キラっとプリチャン'),
+])
 
-KEY_MAP = {
-    'subtitle': 'サブタイトル',
-    'scenario': '脚本',
-    'conte': '絵コンテ',
-    'storyboard': 'ストーリーボード',
-    'direction': '演出',
-    'animation_direction': 'アニメーション演出',
-    'supervision': '作画監修',
-    'onair_date': '放送日 (TXN)',
-}
+KEY_MAP = OrderedDict([
+    ('subtitle', 'サブタイトル'),
+    ('scenario', '脚本'),
+    ('conte', '絵コンテ'),
+    ('storyboard', 'ストーリーボード'),
+    ('direction', '演出'),
+    ('animation_direction', 'アニメーション演出'),
+    ('supervision', '作画監修'),
+    ('onair_date', '放送日 (TXN)'),
+])
+
 
 def prepare_date():
     data = dict()
@@ -36,7 +43,6 @@ def prepare_date():
     return data
 
 DATA = prepare_date()
-
 
 
 def get(data_, story_id_):
@@ -74,16 +80,11 @@ def search(data_, cond=None):
 
 @app.route('/')
 def index():
-    text = """priStorySearch
+    return render_template('index.html', series=FILE_LIST, possible_params=KEY_MAP)
 
-    use `/story`
-    必須パラメータ: series={series}　
-    パラメータ: {possible_params}
-    """.format(series=FILE_LIST, possible_params=KEY_MAP)
-    return text
 
-@app.route('/story')
-def search_story():
+@app.route('/story/<series>')
+def search_story(series):
     """
     各話リストから条件にあうものをサーチ
 
@@ -104,10 +105,7 @@ def search_story():
         'supervision',
         'onair_date',
     ]
-    try:
-        series = params['series']
-    except KeyError as e:
-        return 'シリーズを指定してください: {}'.format(','.join(FILE_LIST))
+
 
     search_condition = dict()
     for key in possible_param_keys:
@@ -116,9 +114,11 @@ def search_story():
         except KeyError:
             pass
     result = search(DATA.get(series, {}), search_condition)
-    return '{}'.format(json.dumps(result, sort_keys=True, ensure_ascii=False, indent=4))
+    return jsonify(result)
 
 
 if __name__ == '__main__':
-    app.debug = True
-    app.run(host='0.0.0.0', port=55301)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
+    app.debug = False
+    app.run()

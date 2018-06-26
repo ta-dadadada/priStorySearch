@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>priStorySearch</title>
+    <h1>priStorySearch</h1>
+    <h2>Hou To Use</h2>
+    <p>/story/&lt;series&gt;?key=value&...</p>
+    <h3>series</h3>
+        <table>
+        {% for key, value in series.items() %}
+           <tr>
+                <th> {{ key }} </th>
+                <td> {{ value }} </td>
+           </tr>
+        {% endfor %}
+        </table>
+    <h3>パラメータ</h3>
+        <table>
+        {% for key, value in possible_params.items() %}
+           <tr>
+                <th> {{ key }} </th>
+                <td> {{ value }} </td>
+           </tr>
+        {% endfor %}
+        </table>
+</head>
+<body>
+
+</body>
+</html>
